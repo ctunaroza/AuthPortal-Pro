@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Avanzado de Autenticación & Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Toast Notifications Container -->
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+    <!-- Header / Navbar Top Bar -->
+    <header class="top-nav">
+        <div class="brand">🔐 AuthPortal Pro</div>
+        <div class="nav-controls">
+            <!-- Botón Toggle de Modo Oscuro Global -->
+            <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="theme-icon light-icon">☀️</span>
+                <span class="theme-icon dark-icon">🌙</span>
+                <span class="theme-text">Modo</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="main-container">
+
+        <!-- ==================== VISTA DE LOGIN ==================== -->
+        <section id="loginView" class="auth-card view-section active">
+            <div class="card-header">
+                <h2>Iniciar Sesión</h2>
+                <p>Ingresa tus credenciales para acceder a la plataforma.</p>
+            </div>
+
+            <div id="loginAlert" class="alert-box hidden" role="alert"></div>
+
+            <form id="loginForm" novalidate>
+                <div class="form-group">
+                    <label for="loginIdentifier">Usuario o Correo Electrónico</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="loginIdentifier" placeholder="ej. admin o correo@dominio.com" required>
+                        <span class="input-icon">👤</span>
+                    </div>
+                    <span class="error-msg" id="loginIdentifierError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Contraseña</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="loginPassword" placeholder="••••••••" required>
+                        <button type="button" class="toggle-password-btn" id="toggleLoginPassword" aria-label="Mostrar contraseña">👁️</button>
+                    </div>
+                    <span class="error-msg" id="loginPasswordError"></span>
+                </div>
+
+                <!-- Checkbox Recordar Sesión -->
+                <div class="form-options">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="rememberMe">
+                        <span class="checkmark"></span>
+                        <span class="label-text">Recordar sesión (30 días)</span>
+                    </label>
+                    <a href="#" id="goToForgot" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <!-- Banner de Bloqueo por Intentos -->
+                <div id="lockoutBanner" class="lockout-banner hidden">
+                    <span class="lock-icon">🔒</span>
+                    <span id="lockoutTimerText">Sistema bloqueado por intentos fallidos. Espere 30s.</span>
+                </div>
+
+                <button type="submit" id="loginSubmitBtn" class="btn btn-primary">
+                    <span class="btn-text">Ingresar al Sistema</span>
+                </button>
+            </form>
+
+            <div class="card-footer">
+                <p>¿No tienes una cuenta aún? <a href="#" id="goToRegister">Regístrate aquí</a></p>
+            </div>
+        </section>
+
+
+        <!-- ==================== VISTA DE REGISTRO ==================== -->
+        <section id="registerView" class="auth-card view-section hidden">
+            <div class="card-header">
+                <h2>Crear Cuenta</h2>
+                <p>Completa el formulario para registrarte en la plataforma.</p>
+            </div>
+
+            <div id="registerAlert" class="alert-box hidden" role="alert"></div>
+
+            <form id="registerForm" novalidate>
+                <div class="form-group">
+                    <label for="regFullName">Nombre Completo</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="regFullName" placeholder="Ej. César Tunaroza" required>
+                        <span class="input-icon">👤</span>
+                    </div>
+                    <span class="error-msg" id="regFullNameError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="regEmail">Correo Electrónico</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="regEmail" placeholder="correo@ejemplo.com" required>
+                        <span class="input-icon">✉️</span>
+                    </div>
+                    <span class="error-msg" id="regEmailError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="regUsername">Nombre de Usuario</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="regUsername" placeholder="Ej. cesartunaroza" required>
+                        <span class="input-icon">🏷️</span>
+                    </div>
+                    <span class="error-msg" id="regUsernameError"></span>
+                </div>
+
+                <!-- Selección de Rol de Usuario -->
+                <div class="form-group">
+                    <label for="regRole">Rol de Usuario</label>
+                    <div class="input-wrapper">
+                        <select id="regRole" required>
+                            <option value="Usuario">Usuario Estándar</option>
+                            <option value="Administrador">Administrador</option>
+                        </select>
+                        <span class="input-icon">🛡️</span>
+                    </div>
+                    <span class="error-msg" id="regRoleError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPassword">Contraseña</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="regPassword" placeholder="••••••••" required>
+                        <button type="button" class="toggle-password-btn" id="toggleRegPassword" aria-label="Mostrar contraseña">👁️</button>
+                    </div>
+                    <span class="error-msg" id="regPasswordError"></span>
+
+                    <!-- Indicador de Fuerza de Contraseña -->
+                    <div class="strength-meter-container">
+                        <div class="strength-meter-bar">
+                            <div id="strengthBar" class="strength-bar-fill"></div>
+                        </div>
+                        <span id="strengthText" class="strength-text">Seguridad: No ingresada</span>
+                    </div>
+
+                    <ul class="password-requirements" id="passwordRequirements">
+                        <li id="reqLength">✖ Mínimo 8 caracteres</li>
+                        <li id="reqUpper">✖ Al menos una letra mayúscula</li>
+                        <li id="reqLower">✖ Al menos una letra minúscula</li>
+                        <li id="reqNumber">✖ Al menos un número</li>
+                        <li id="reqSpecial">✖ Al menos un carácter especial (@$!%*?&._-)</li>
+                    </ul>
+                </div>
+
+                <div class="form-group">
+                    <label for="regConfirmPassword">Confirmar Contraseña</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="regConfirmPassword" placeholder="••••••••" required>
+                        <button type="button" class="toggle-password-btn" id="toggleRegConfirmPassword" aria-label="Mostrar contraseña">👁️</button>
+                    </div>
+                    <span class="error-msg" id="regConfirmPasswordError"></span>
+                </div>
+
+                <button type="submit" id="registerSubmitBtn" class="btn btn-primary">
+                    <span class="btn-text">Completar Registro</span>
+                </button>
+            </form>
+
+            <div class="card-footer">
+                <p>¿Ya tienes una cuenta registrada? <a href="#" id="goToLogin">Inicia sesión</a></p>
+            </div>
+        </section>
+
+
+        <!-- ==================== VISTA RECUPERACIÓN DE CONTRASEÑA ==================== -->
+        <section id="forgotView" class="auth-card view-section hidden">
+            <div class="card-header">
+                <h2>Recuperar Contraseña</h2>
+                <p>Ingresa tu correo o usuario registrado para restablecer tu clave.</p>
+            </div>
+
+            <div id="forgotAlert" class="alert-box hidden" role="alert"></div>
+
+            <form id="forgotForm" novalidate>
+                <div class="form-group">
+                    <label for="forgotIdentifier">Correo o Usuario Registrado</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="forgotIdentifier" placeholder="ej. usuario o correo@dominio.com" required>
+                        <span class="input-icon">✉️</span>
+                    </div>
+                    <span class="error-msg" id="forgotIdentifierError"></span>
+                </div>
+
+                <div id="resetFields" class="hidden">
+                    <div class="form-group">
+                        <label for="newPassword">Nueva Contraseña</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="newPassword" placeholder="••••••••">
+                            <button type="button" class="toggle-password-btn" id="toggleNewPassword" aria-label="Mostrar contraseña">👁️</button>
+                        </div>
+                        <span class="error-msg" id="newPasswordError"></span>
+                    </div>
+                </div>
+
+                <button type="submit" id="forgotSubmitBtn" class="btn btn-primary">
+                    <span class="btn-text">Verificar Usuario</span>
+                </button>
+            </form>
+
+            <div class="card-footer">
+                <p><a href="#" id="goToLoginFromForgot">← Volver al Inicio de Sesión</a></p>
+            </div>
+        </section>
+
+
+        <!-- ==================== VISTA DE DASHBOARD PRINCIPAL ==================== -->
+        <section id="dashboardView" class="dashboard-card view-section hidden">
+            <header class="dashboard-header">
+                <div class="user-welcome">
+                    <span class="welcome-badge" id="dashRoleBadge">Rol: Usuario</span>
+                    <h1 id="welcomeUserTitle">¡Bienvenido!</h1>
+                    <p class="subtitle">Panel de Gestión General y Servicios.</p>
+                </div>
+                <div class="header-actions">
+                    <button id="goToProfileBtn" class="btn btn-secondary">
+                        <span>👤 Ver Perfil</span>
+                    </button>
+                    <button id="logoutBtn" class="btn btn-danger">
+                        <span>🚪 Cerrar Sesión</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Menú de Pestañas / Tabs -->
+            <nav class="dash-tabs">
+                <button class="tab-btn active" data-tab="tabOverview">📌 Resumen</button>
+                <button class="tab-btn" data-tab="tabHistory">📜 Historial de Accesos</button>
+                <button class="tab-btn" id="adminUsersTabBtn" data-tab="tabUsers">👥 Gestión Usuarios (Admin)</button>
+            </nav>
+
+            <div class="dashboard-content">
+                
+                <!-- TAB 1: RESUMEN Y NOTIFICACIONES -->
+                <div id="tabOverview" class="tab-content active">
+                    <div class="info-card">
+                        <h3>Vista General del Sistema</h3>
+                        <p class="mb-15">Bienvenido al sistema con control de acceso por roles e historial en tiempo real.</p>
+                        
+                        <div class="dashboard-widgets">
+                            <div class="widget-box">
+                                <div class="widget-icon">🛡️</div>
+                                <div class="widget-data">
+                                    <h4>Nivel de Rol</h4>
+                                    <p id="widgetUserRole">Usuario</p>
+                                </div>
+                            </div>
+                            <div class="widget-box">
+                                <div class="widget-icon">🕒</div>
+                                <div class="widget-data">
+                                    <h4>Último Acceso</h4>
+                                    <p id="widgetLastLogin">-</p>
+                                </div>
+                            </div>
+                            <div class="widget-box">
+                                <div class="widget-icon">🔔</div>
+                                <div class="widget-data">
+                                    <h4>Notificaciones</h4>
+                                    <p id="widgetNotifCount">0 Recientes</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: HISTORIAL DE ACCESOS -->
+                <div id="tabHistory" class="tab-content hidden">
+                    <div class="info-card">
+                        <h3>Tu Historial de Inicios de Sesión</h3>
+                        <p class="mb-15">Registro detallado de los accesos a tu cuenta.</p>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha y Hora</th>
+                                        <th>Estado</th>
+                                        <th>IP Ficticia</th>
+                                        <th>Navegador</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody">
+                                    <!-- Cargado dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: GESTIÓN DE USUARIOS Y EXPORTACIÓN CSV (ADMIN) -->
+                <div id="tabUsers" class="tab-content hidden">
+                    <div class="info-card">
+                        <div class="section-title-action">
+                            <div>
+                                <h3>Usuarios Registrados en el Sistema</h3>
+                                <p>Herramientas exclusivas para el rol Administrador.</p>
+                            </div>
+                            <!-- BOTÓN EXPORTAR CSV -->
+                            <button id="exportCsvBtn" class="btn btn-success">
+                                📥 Exportar Usuarios a CSV
+                            </button>
+                        </div>
+
+                        <div class="table-responsive mt-15">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Usuario</th>
+                                        <th>Correo</th>
+                                        <th>Rol</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody">
+                                    <!-- Cargado dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ==================== VISTA DE PERFIL DE USUARIO ==================== -->
+        <section id="profileView" class="dashboard-card view-section hidden">
+            <header class="dashboard-header">
+                <div>
+                    <h2>Perfil del Usuario</h2>
+                    <p class="subtitle">Actualiza tus datos personales y gestiona tu información.</p>
+                </div>
+                <button id="backToDashBtn" class="btn btn-secondary">
+                    <span>← Volver al Dashboard</span>
+                </button>
+            </header>
+
+            <div class="info-card">
+                <div class="profile-avatar-large" id="profileAvatarLarge">U</div>
+
+                <form id="profileForm" novalidate>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="profFullName">Nombre Completo</label>
+                            <input type="text" id="profFullName" required>
+                            <span class="error-msg" id="profFullNameError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profUsername">Usuario (No modificable)</label>
+                            <input type="text" id="profUsername" readonly disabled>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profEmail">Correo Electrónico</label>
+                            <input type="email" id="profEmail" required>
+                            <span class="error-msg" id="profEmailError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profRole">Rol asignado</label>
+                            <input type="text" id="profRole" readonly disabled>
+                        </div>
+                    </div>
+
+                    <div class="form-actions mt-20">
+                        <button type="submit" class="btn btn-primary" style="width: auto;">
+                            💾 Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
